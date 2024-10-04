@@ -1,0 +1,83 @@
+<?php
+session_start();
+$servername = "localhost";
+$username = "root"; // Your MySQL username
+$password = ""; // Your MySQL password
+$dbname = "otp"; // Your database name
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+
+require 'phpmailer/src/Exception.php';
+require 'phpmailer/src/PHPMailer.php';
+require 'phpmailer/src/SMTP.php';
+
+// Create connection
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// Function to generate a random OTP
+function generateOTP($length = 6) {
+    $characters = '0123456789';
+    $charactersLength = strlen($characters);
+    $otp = '';
+    for ($i = 0; $i < $length; $i++) {
+        $otp .= $characters[rand(0, $charactersLength - 1)];
+    }
+    return $otp;
+}
+
+if (isset($_POST['email'])) {
+    $email = $_POST['email'];
+
+    // Verify email against the database
+    $stmt = $conn->prepare('SELECT * FROM user WHERE email = ?');
+    $stmt->bind_param('s', $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        // Generate and store OTP
+        $otp = generateOTP();
+        $_SESSION['otp'] = $otp;
+        $_SESSION['email'] = $email;
+
+        // PHPMailer code to send OTP
+        $mail = new PHPMailer(true);
+
+        try {
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com';
+            $mail->SMTPAuth   = true;
+            $mail->Username   = 'gayatriinarasimhan@gmail.com';
+            $mail->Password   = 'awzq jiyd wmah xjwb'; // Use actual password or an app-specific password
+            $mail->SMTPSecure = 'tls';
+            $mail->Port       = 587;
+
+            $mail->setFrom('saikiranpuppala14@gmail.com', 'Saikiran');
+            $mail->addAddress($email);
+
+            $mail->isHTML(true);
+            $mail->Subject = 'Your OTP Code';
+            $mail->Body    = 'Your OTP code is <b>' . $otp . '</b>';
+            $mail->AltBody = 'Your OTP code is ' . $otp;
+
+            $mail->send();
+            // echo 'success';
+            header("Location: enter_otp.html");
+            exit();
+        } catch (Exception $e) {
+            echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+        }
+    } else {
+        echo 'Email not found in our records.';
+    }
+} else {
+    echo 'Email is required.';
+}
+?>
