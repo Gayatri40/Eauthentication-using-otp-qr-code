@@ -1,0 +1,94 @@
+<?php
+session_start();
+$host = "localhost";
+$dbname = "otp_validation";
+$username = "root"; // Replace with your database username
+$password = ""; // Replace with your database password
+
+// Create a connection to the database
+$conn = new mysqli($host, $username, $password, $dbname);
+
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+// Function to generate OTP
+function generateOTP($length = 6) {
+    return rand(pow(10, $length-1), pow(10, $length)-1);
+}
+
+// Simulating QR code generation and OTP generation
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['email'])) {
+    $email = htmlspecialchars($_POST['email']);
+
+    // Generate a new OTP
+    $generatedOTP = generateOTP();
+    $_SESSION['generatedOTP'] = $generatedOTP;
+
+    // Check if the user exists
+    $stmt = $conn->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $stmt->bind_result($userExists);
+    $stmt->fetch();
+    $stmt->close();
+
+    // Insert or update OTP in the database
+    if ($userExists) {
+        $stmt = $conn->prepare("UPDATE users SET otp = qr_otp?, otp_valid = 1, otp_generated_at = NOW() WHERE email = ?");
+        $stmt->bind_param("ss", $generatedOTP, $email);
+    } else {
+        $stmt = $conn->prepare("INSERT INTO users (email, qr_otp) VALUES (?, ?)");
+        $stmt->bind_param("ss", $email, $generatedOTP);
+    }
+    $stmt->execute();
+    $stmt->close();
+
+    echo "<p>QR Code generated. Your OTP is: " . $generatedOTP . "</p>"; // Simulating QR code with OTP
+}
+
+// Validating OTP
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['otp'])) {
+    $email = htmlspecialchars($_POST['email']);
+    $enteredOTP = htmlspecialchars($_POST['otp']);
+
+    // Fetch the stored OTP from the database
+    $stmt = $conn->prepare("SELECT otp, otp_valid FROM users WHERE email = ? AND otp_valid = 1");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $stmt->bind_result($storedOTP, $otpValid);
+    $stmt->fetch();
+    $stmt->close();
+
+    // Check if the entered OTP matches the stored OTP
+    if ($storedOTP == $enteredOTP && $otpValid == 1) {
+        echo "<h1>Welcome, User! OTP validated successfully.</h1>";
+
+        // Invalidate OTP after successful validation
+        $stmt = $conn->prepare("UPDATE users SET otp_valid = 0 WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $stmt->close();
+    } else {
+        echo "<h1>Error: Incorrect or expired OTP. Please try again.</h1>";
+    }
+}
+?>
+
+<!-- Form for QR Code/OTP generation -->
+<form method="post" action="">
+    <label for="email">Enter Email to generate QR Code (with OTP):</label>
+    <input type="email" name="email" id="email" required><br>
+    <input type="submit" value="Generate QR Code (OTP)">
+</form>
+
+<!-- Form for OTP validation -->
+<form method="post" action="">
+    <label for="email">Enter your email:</label>
+    <input type="email" name="email" id="email" required><br>
+
+    <label for="otp">Enter OTP:</label>
+    <input type="text" name="otp" id="otp" required><br>
+
+    <input type="submit" value="Validate OTP">
+</form>
