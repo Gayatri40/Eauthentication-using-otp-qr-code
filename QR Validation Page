@@ -1,0 +1,34 @@
+<?php
+// Database connection (MySQLi or PDO)
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "validation";
+
+// Create connection
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// Save form data (Example: Name and Email)
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $name = $_POST['gayatri'];
+    $email = $_POST['gayatrinarasimhann@gmail.com'];
+    
+    // Insert data into the database
+    $sql = "INSERT INTO users (name, email) VALUES ('$name', '$email')";
+    
+    if ($conn->query($sql) === TRUE) {
+        $last_id = $conn->insert_id;  // Get the last inserted ID
+        echo "Successfully Scnned Number: " . $last_id;
+    } else {
+        echo "Error: " . $sql . "<br>" . $conn->error;
+    }
+    
+    // Close the database connection
+    $conn->close();
+}
+?>
