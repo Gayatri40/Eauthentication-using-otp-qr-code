@@ -25,4 +25,6 @@ This project implements an e-authentication system that leverages One-Time Passw
 - **Libraries**:
   - [PHP QR Code Library]
   - [PHPMailer]
-
+  - [PHP MyAdmin]
+  - ** DataBases**:
+  - [MYSQL]
