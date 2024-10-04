@@ -1,0 +1,15 @@
+<?php
+// Check if form data is submitted
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Get the form data
+    $otp = htmlspecialchars($_POST['scannedNumber']);
+	$email = htmlspecialchars($_POST['email']);
+	$generatedNumber = htmlspecialchars($_POST['generatedNumber']);
+   
+    
+    // Print the submitted data
+    echo "<h1>Form Data Submitted</h1>";
+    echo "<p><strong>OTP:</strong> $otp</p>";
+} else {
+    echo "<p>No data submitted</p>";
+}
