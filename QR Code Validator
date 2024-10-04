@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Validator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        #qrCode {
+            margin-top: 20px;
+        }
+        .message {
+            margin-top: 10px;
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>QR Code Validator</h1>
+    <form id="qrForm">
+        <label for="digitCount">Number of digits in QR Code:</label><br>
+        <input type="submit" value="Generate QR Code">
+    </form>
+
+    <div id="qrCode"></div>
+
+    <h2>Check Scanned QR Code Number</h2>
+    <form action="submit.php" method="post" id="checkForm">
+		<label for="email">Enter Email Address:</label>
+		<input type="email" 
+           id="email" 
+           name="email" 
+           placeholder="you@example.com" 
+           required 
+           maxlength="255"
+           autocomplete="email"><br>
+        <label for="scannedNumber">Enter scanned number:</label>
+        <input type="text" id="scannedNumber" name="scannedNumber" required>
+		 <input type="hidden" id="generatedNumber" name="generatedNumber" required>
+        <input type="submit" value="submit">
+    </form>
+
+    <div id="result" class="message"></div>
+
+    <script>
+        $(document).ready(function() {
+            $('#qrForm').on('submit', function(event) {
+                event.preventDefault();
+                
+                // Clear previous QR code
+                $('#qrCode').empty();
+                
+                // Get the number of digits from the form
+                var digitCount = $('#digitCount').val();
+                
+                // Generate a random digit number
+                var randomNumber = Math.floor(Math.random() * Math.pow(10, 4)).toString().padStart(4, '0');
+
+				// Set the hidden input field value
+                $('#generatedNumber').val(randomNumber);
+
+                // Generate QR Code
+                $('#qrCode').qrcode({
+                    text: randomNumber,
+                    width: 128,
+                    height: 128
+                });
+
+                // Store the original number for validation
+                $('#result').data('expected', randomNumber);
+            });
+        });
+    </script>
+</body>
+</html>
