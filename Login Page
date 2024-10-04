@@ -1,0 +1,37 @@
+<?php
+// Check if form data is submitted
+
+$servername = "localhost:3306";
+$username = "root";
+$password = "";
+$dbname = "validation";
+
+ // Create connection
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Get the form data
+    
+	$email = htmlspecialchars($_POST['email']);
+	$password = htmlspecialchars($_POST['password']);
+	
+	// Prepare a SELECT query
+	$sql = "SELECT email,password FROM user";
+	$result = $conn->query($sql);
+	
+	if ($result->num_rows > 0) {
+    // Output data for each row
+    echo "SUccesfully Logged in";
+	} else {
+    echo "Error try again";
+	}
+}
+$conn->close();
+?>
